@@ -38,16 +38,16 @@ jobs:
           # Сохраняем JSON ключ в файл
           echo '${{ secrets.YC_SA_KEY }}' > sa-key.json
           
-          # Создаём IAM токен через сервисный ключ
-          IAM_TOKEN=$(yc iam create-token --service-account-key sa-key.json)
-          
-          # Устанавливаем токен в конфиг
-          yc config set --token "$IAM_TOKEN"
+          # Создаём профиль с сервисным ключом
+          yc config profile create github-deployer --service-account-key sa-key.json
           
           # Устанавливаем фолдер по умолчанию
           yc config set folder-id "$YC_FOLDER_ID"
           
-          # Очищаем ключ после использования (безопасность!)
+          # Проверяем авторизацию
+          yc config profile list
+          
+          # Очищаем ключ после использования
           rm sa-key.json
           
           echo "Authentication successful!"
