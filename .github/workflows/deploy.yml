@@ -37,12 +37,20 @@ jobs:
           echo "Authenticating with SA key..."
           # Сохраняем JSON ключ в файл
           echo '${{ secrets.YC_SA_KEY }}' > sa-key.json
-          # Аутентифицируемся
-          yc config serviceaccount --service-account-key sa-key.json
+          
+          # Создаём IAM токен через сервисный ключ
+          IAM_TOKEN=$(yc iam create-token --service-account-key sa-key.json)
+          
+          # Устанавливаем токен в конфиг
+          yc config set --token "$IAM_TOKEN"
+          
           # Устанавливаем фолдер по умолчанию
           yc config set folder-id "$YC_FOLDER_ID"
-          # Очищаем ключ после использования
+          
+          # Очищаем ключ после использования (безопасность!)
           rm sa-key.json
+          
+          echo "Authentication successful!"
 
       - name: Login to Yandex Container Registry
         run: |
