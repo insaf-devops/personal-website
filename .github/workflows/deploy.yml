@@ -83,22 +83,17 @@ jobs:
           echo "Pushing image..."
           docker push "$IMAGE_TAG"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-      - name: Debug permissions
+      - name: Check SA permissions
         run: |
-          echo "Checking who I am..."
-          yc resource-manager folder list
+          echo "Checking service account $YC_SA_ID..."
           
-          echo "Checking service account permissions..."
-          # Попробуй получить список ревизий контейнера
-          yc serverless container revision list --container-name insaf-portfolio || true
+          # Проверяем права на использование сервисного аккаунта
+          yc resource-manager folder list-access-bindings "$YC_FOLDER_ID" \
+            --format json | grep -A5 -B5 "$YC_SA_ID" || echo "No bindings found"
           
-          echo "Checking registry access..."
-          # Попробуй получить информацию о реестре
-          yc container repository list --registry-id "$YC_REGISTRY_ID" || true
-            - name: Ensure container exists
-              run: |
-                echo "Ensuring container exists..."
-                yc serverless container create --name insaf-portfolio --folder-id "$YC_FOLDER_ID" || true
+          # Проверяем права на реестр
+          yc container registry list-access-bindings "$YC_REGISTRY_ID" \
+            --format json | grep -A5 -B5 "$YC_SA_ID" || echo "No registry bindings found"
       
       - name: Deploy to Cloud Run
         run: |
