@@ -14,13 +14,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Install Yandex Cloud CLI
+      - name: Install Yandex Cloud CLI via Snap
         run: |
-          echo "Installing YC CLI from official repo..."
-          curl -fsSL https://packages.yandexcloud.net/key.gpg | sudo apt-key add -
-          echo "deb https://packages.yandexcloud.net/deb stable main" | sudo tee /etc/apt/sources.list.d/yandex-cloud.list
-          sudo apt-get update
-          sudo apt-get install -y yandex-cloud-cli
+          echo "Installing YC CLI via snap..."
+          sudo snap install yandex-cloud --classic
           yc version
 
       - name: Authenticate with API Key
