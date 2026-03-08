@@ -8,24 +8,34 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # 1. Просто скачиваем код (стандартный экшен)
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Настраиваем Docker (стандартный экшен)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # 3. ВРУЧНУЮ ставим YC CLI (никаких внешних репозиториев!)
       - name: Install Yandex Cloud CLI
-        uses: yandex-cloud/actions/setup-cli@v1
-
-      - name: Login to Yandex Cloud
         run: |
-          echo '${{ secrets.YC_SA_KEY }}' > sa-key.json
-          yc config serviceaccount --service-account-key sa-key.json
+          curl -sSL https://storage.yandexcloud.net/cloud-cli/releases/yc-linux-amd64.tar.gz -o yc.tar.gz
+          tar -xzf yc.tar.gz
+          sudo mv yc /usr/local/bin/
+          rm yc.tar.gz
 
+      # 4. Логинимся по API-ключу
+      - name: Authenticate with API Key
+        run: |
+          yc config set --token $(yc iam create-token --api-key '${{ secrets.YC_API_KEY }}')
+          yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
+
+      # 5. Логиним докер в реестр
       - name: Login to Yandex Container Registry
         run: |
           yc cr registry docker-credential-helper --registry-id ${{ secrets.YC_REGISTRY_ID }} | docker login --username json_key --password-stdin cr.yandex
 
+      # 6. Собираем и пушим образ
       - name: Build and Push Docker image
         run: |
           IMAGE_TAG=cr.yandex/${{ secrets.YC_REGISTRY_ID }}/portfolio:${{ github.sha }}
@@ -33,6 +43,7 @@ jobs:
           docker push $IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
+      # 7. Деплоим в Cloud Run
       - name: Deploy to Cloud Run
         run: |
           yc serverless container revision deploy \
@@ -43,4 +54,5 @@ jobs:
             --cores-fraction 0.5 \
             --execution-timeout 30s \
             --folder-id ${{ secrets.YC_FOLDER_ID }} \
-            --service-account-id ${{ secrets.YC_SA_ID }}
+            --service-account-id ${{ secrets.YC_SA_ID }} \
+            --public
