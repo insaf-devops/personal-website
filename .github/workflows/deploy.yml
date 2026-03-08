@@ -38,14 +38,17 @@ jobs:
           # Сохраняем JSON ключ во временный файл
           echo '${{ secrets.YC_SA_KEY }}' > sa-key.json
           
-          # Создаём пустой профиль
-          yc config profile create github-deployer || true
+          # Создаём пустой профиль (если ещё не создан)
+          yc config profile create github-deployer 2>/dev/null || true
           
           # Активируем профиль
           yc config profile activate github-deployer
           
           # Устанавливаем сервисный аккаунт через JSON ключ
           yc config set service-account-key sa-key.json
+          
+          # Устанавливаем cloud-id (ЗАМЕНИ НА СВОЙ!)
+          yc config set cloud-id bpfclgpcbckpakimd4ht
           
           # Устанавливаем фолдер по умолчанию
           yc config set folder-id "$YC_FOLDER_ID"
