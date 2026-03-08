@@ -16,11 +16,11 @@ jobs:
 
       - name: Install Yandex Cloud CLI
         run: |
-          echo "Installing YC CLI..."
-          curl -sSL https://storage.yandexcloud.net/cloud-cli/releases/yc-linux-amd64.tar.gz -o yc.tar.gz
-          tar -xzf yc.tar.gz
-          sudo mv yc /usr/local/bin/yc
-          rm yc.tar.gz
+          echo "Installing YC CLI from official repo..."
+          curl -fsSL https://packages.yandexcloud.net/key.gpg | sudo apt-key add -
+          echo "deb https://packages.yandexcloud.net/deb stable main" | sudo tee /etc/apt/sources.list.d/yandex-cloud.list
+          sudo apt-get update
+          sudo apt-get install -y yandex-cloud-cli
           yc version
 
       - name: Authenticate with API Key
