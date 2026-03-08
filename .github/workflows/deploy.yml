@@ -24,18 +24,12 @@ jobs:
       - name: Install Yandex Cloud CLI
         run: |
           echo "Installing YC CLI..."
-          # Пробуем несколько источников
-          if curl -fsSL https://storage.yandexcloud.net/cloud-cli/latest/yc-linux-amd64.tar.gz -o yc.tar.gz 2>/dev/null; then
-            tar -xzf yc.tar.gz
-            sudo mv yc /usr/local/bin/
-            rm yc.tar.gz
-          else
-            # Фолбэк: используем готовый бинарник с другого зеркала
-            curl -fsSL https://github.com/yandex-cloud/cli/releases/latest/download/yc-linux-amd64.tar.gz -o yc.tar.gz
-            tar -xzf yc.tar.gz
-            sudo mv yc /usr/local/bin/
-            rm yc.tar.gz
-          fi
+          # Скачиваем официальный скрипт установки
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -a
+          # Добавляем yc в PATH для текущей сессии
+          export PATH="$HOME/yandex-cloud/bin:$PATH"
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+          # Проверяем версию
           yc version
 
       - name: Authenticate with API Key
