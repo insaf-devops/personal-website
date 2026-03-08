@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test User | System Analyst & DevOps</title>
+    <style>
+        :root {
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-main: #111827;
+            --text-secondary: #4b5563;
+            --accent: #4f46e5;
+            --accent-light: #e0e7ff;
+            --border: #e5e7eb;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --code-bg: #1e1e1e;
+            --code-text: #d4d4d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 750px;
+            width: 100%;
+            background-color: var(--bg-card);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 60px;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Декоративная полоска сверху как в IDE */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff5f56, #ffbd2e, #27c93f);
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid var(--bg-body);
+        }
+
+        .header-content h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        /* Typing effect container */
+        .role-container {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            color: var(--accent);
+            font-weight: 600;
+            background: var(--accent-light);
+            padding: 4px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            border: 1px solid rgba(79, 70, 229, 0.2);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background-color: var(--accent);
+            margin-left: 4px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        /* LANGUAGE SWITCHER */
+        .lang-switcher {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-body);
+            padding: 4px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover {
+            color: var(--text-main);
+        }
+
+        .lang-btn.active {
+            background: var(--bg-card);
+            color: var(--accent);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* SYSTEM STATUS BAR */
+        .status-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 12px 16px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #166534;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* SECTIONS */
+        section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        h2::before {
+            content: '>';
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-size: 1.05rem;
+        }
+
+        /* GIT COMMITS STYLE */
+        .git-commits {
+            background: var(--code-bg);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--code-text);
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .commit-row {
+            display: flex;
+            gap: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .commit-row:last-child {
+            border-bottom: none;
+        }
+
+        .commit-hash {
+            color: #f59e0b;
+            min-width: 60px;
+        }
+
+        .commit-msg {
+            color: #10b981;
+        }
+
+        .commit-time {
+            color: #6b7280;
+            margin-left: auto;
+        }
+
+        /* SKILLS GRID */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .skill-card {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .skill-card:hover {
+            border-color: var(--accent);
+            background-color: #fff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .skill-title {
+            color: var(--text-main);
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+            font-size: 0.95rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            background-color: #fff;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* CONTACTS */
+        .contacts {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            background-color: var(--text-main);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            border: 1px solid var(--text-main);
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-main);
+            background-color: #f9fafb;
+            transform: translateY(-2px);
+            box-shadow: none;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* LANGUAGE SPECIFIC */
+        [data-lang] {
+            display: none;
+        }
+
+        [data-lang].active {
+            display: block;
+        }
+
+        .inline-lang {
+            display: none;
+        }
+
+        .inline-lang.active {
+            display: inline;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .container { 
+                padding: 30px 20px; 
+            }
+            
+            h1 { 
+                font-size: 2rem; 
+            }
+            
+            .skills-grid { 
+                grid-template-columns: 1fr; 
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .btn { 
+                width: 100%; 
+            }
+            
+            .lang-switcher {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>Test User</h1>
+                <div class="role-container">
+                    <span id="typing-text"></span><span class="cursor"></span>
+                </div>
+            </div>
+            
+            <div class="lang-switcher">
+                <button class="lang-btn active" onclick="switchLang('ru')" id="btn-ru">RU</button>
+                <button class="lang-btn" onclick="switchLang('en')" id="btn-en">EN</button>
+            </div>
+        </header>
+
+        <!-- SYSTEM STATUS BAR -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span class="inline-lang active" data-lang="ru">Все системы в норме</span>
+                <span class="inline-lang" data-lang="en">All systems operational</span>
+            </div>
+            <div class="status-item" style="margin-left: auto;">
+                <span>Uptime: <span id="uptime">99.9%</span></span>
+            </div>
+        </div>
+
+        <section id="about">
+            <h2>
+                <span class="inline-lang active" data-lang="ru">Обо мне</span>
+                <span class="inline-lang" data-lang="en">About Me</span>
+            </h2>
+            
+            <div data-lang="ru" class="active">
+                <p>
+                    IT-специалист, объединяющий аналитический склад ума с инженерным подходом. 
+                    Начинал путь в системном анализе, глубоко погружаясь в архитектуру приложений и требования бизнеса. 
+                </p>
+                <p>
+                    Сейчас активно развиваюсь в направлении <strong>DevOps</strong>. Моя цель — выстраивать надежные пайплайны, 
+                    автоматизировать инфраструктуру и обеспечивать бесшовную доставку кода.
+                </p>
+            </div>
+            
+            <div data-lang="en">
+                <p>
+                    IT professional combining analytical thinking with an engineering approach. 
+                    Started my journey in system analysis, diving deep into application architecture and business requirements.
+                </p>
+                <p>
+                    Currently actively developing in the <strong>DevOps</strong> direction. My goal is to build reliable pipelines, 
+                    automate infrastructure, and ensure seamless code delivery.
+                </p>
+            </div>
+        </section>
+
+        <!-- GIT ACTIVITY SECTION -->
+        <section id="activity">
+            <h2>
+                <span class="inline-lang active" data-lang="ru">Активность</span>
+                <span class="inline-lang" data-lang="en">Activity</span>
+            </h2>
+            
+            <div class="git-commits">
+                <div class="commit-row">
+                    <span class="commit-hash">a3f8c21</span>
+                    <span class="commit-msg">feat: added Docker Compose for local dev</span>
+                    <span class="commit-time">2 hours ago</span>
+                </div>
+                <div class="commit-row">
+                    <span class="commit-hash">7b2e9d4</span>
+                    <span class="commit-msg">docs: updated README with API specs</span>
+                    <span class="commit-time">1 day ago</span>
+                </div>
+                <div class="commit-row">
+                    <span class="commit-hash">c5d1a88</span>
+                    <span class="commit-msg">fix: resolved merge conflicts in main branch</span>
+                    <span class="commit-time">3 days ago</span>
+                </div>
+                <div class="commit-row">
+                    <span class="commit-hash">9e4f012</span>
+                    <span class="commit-msg">init: initial commit of portfolio site</span>
+                    <span class="commit-time">1 week ago</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="stack">
+            <h2>
+                <span class="inline-lang active" data-lang="ru">Навыки</span>
+                <span class="inline-lang" data-lang="en">Skills</span>
+            </h2>
+            
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <span class="skill-title">
+                        <span class="inline-lang active" data-lang="ru">📊 Анализ</span>
+                        <span class="inline-lang" data-lang="en">📊 Analysis</span>
+                    </span>
+                    <div class="tags">
+                        <span class="tag">SQL</span>
+                        <span class="tag">UML / BPMN</span>
+                        <span class="tag">REST API</span>
+                        <span class="tag">Postman</span>
+                        <span class="tag">Jira</span>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-title">
+                        <span class="inline-lang active" data-lang="ru">⚙️ DevOps</span>
+                        <span class="inline-lang" data-lang="en">⚙️ DevOps</span>
+                    </span>
+                    <div class="tags">
+                        <span class="tag">Linux</span>
+                        <span class="tag">Docker</span>
+                        <span class="tag">GitLab CI</span>
+                        <span class="tag">Nginx</span>
+                        <span class="tag">Ansible</span>
+                        <span class="tag">Bash</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contacts">
+            <h2>
+                <span class="inline-lang active" data-lang="ru">Контакты</span>
+                <span class="inline-lang" data-lang="en">Contacts</span>
+            </h2>
+            
+            <p data-lang="ru" class="active">Готов обсудить задачи и проекты. Пишите в любой мессенджер.</p>
+            <p data-lang="en">Ready to discuss tasks and projects. Feel free to reach out via any messenger.</p>
+            
+            <div class="contacts">
+                <a href="mailto:your@email.com" class="btn">
+                    <span class="inline-lang active" data-lang="ru">Email</span>
+                    <span class="inline-lang" data-lang="en">Email</span>
+                </a>
+                <a href="https://t.me/your_username" class="btn btn-outline">Telegram</a>
+                <a href="https://github.com/your_username" class="btn btn-outline">GitHub</a>
+            </div>
+        </section>
+
+        <footer>
+            <span class="inline-lang active" data-lang="ru">© 2024 Test User. Build: passing ✅</span>
+            <span class="inline-lang" data-lang="en">© 2024 Test User. Build: passing ✅</span>
+        </footer>
+    </div>
+
+    <script>
+        // === TYPING EFFECT ===
+        const roles = {
+            ru: ["System Analyst", "DevOps Engineer", "Linux Enthusiast"],
+            en: ["System Analyst", "DevOps Engineer", "Linux Enthusiast"]
+        };
+        
+        let currentLang = 'ru';
+        let roleIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typingSpeed = 100;
+        
+        function typeRole() {
+            const currentRole = roles[currentLang][roleIndex];
+            const typingElement = document.getElementById('typing-text');
+            
+            if (isDeleting) {
+                typingElement.textContent = currentRole.substring(0, charIndex - 1);
+                charIndex--;
+                typingSpeed = 50;
+            } else {
+                typingElement.textContent = currentRole.substring(0, charIndex + 1);
+                charIndex++;
+                typingSpeed = 100;
+            }
+            
+            if (!isDeleting && charIndex === currentRole.length) {
+                isDeleting = true;
+                typingSpeed = 2000; // Pause at end
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                roleIndex = (roleIndex + 1) % roles[currentLang].length;
+                typingSpeed = 500; // Pause before new word
+            }
+            
+            setTimeout(typeRole, typingSpeed);
+        }
+        
+        // === LANGUAGE SWITCHER ===
+        function switchLang(lang) {
+            localStorage.setItem('preferredLang', lang);
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${lang}`).classList.add('active');
+            
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll(`[data-lang="${lang}"]`).forEach(el => {
+                el.classList.add('active');
+            });
+            
+            document.querySelectorAll('.inline-lang').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll(`.inline-lang[data-lang="${lang}"]`).forEach(el => {
+                el.classList.add('active');
+            });
+        }
+        
+        // === CONSOLE EASTER EGG ===
+        console.log('%c👋 Hello, Developer!', 'color: #4f46e5; font-size: 24px; font-weight: bold;');
+        console.log('%cLooking for the source code? Check the GitHub link below! 👇', 'color: #10b981; font-size: 14px;');
+        console.log('%c💡 Pro tip: Try running "hire.test_user()" in console', 'color: #f59e0b; font-size: 12px;');
+        
+        // === SECRET COMMAND ===
+        window.hire = {
+            insaf: function() {
+                alert('🎉 Nice try! Contact me via Telegram or Email 😄');
+            }
+        };
+        
+        // === UPTIME COUNTER ===
+        function updateUptime() {
+            const uptimeElement = document.getElementById('uptime');
+            const baseUptime = 99.9;
+            const randomFluctuation = (Math.random() * 0.1).toFixed(1);
+            uptimeElement.textContent = (baseUptime + parseFloat(randomFluctuation)).toFixed(1) + '%';
+        }
+        
+        // === INIT ===
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('preferredLang');
+            if (savedLang && (savedLang === 'ru' || savedLang === 'en')) {
+                switchLang(savedLang);
+            }
+            
+            // Start typing effect
+            setTimeout(typeRole, 500);
+            
+            // Update uptime every 10 seconds
+            setInterval(updateUptime, 10000);
+        });
+    </script>
+
+</body>
+</html>
