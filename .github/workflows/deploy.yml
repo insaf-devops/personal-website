@@ -6,18 +6,10 @@ on:
 
 jobs:
   deploy:
-    # Используем официальный образ Яндекса с установленным CLI и Docker
-    container: cr.yandex/yc-cli:latest
+    runs-on: ubuntu-latest
     
-    # Нужно включить Docker-in-Docker, так как мы внутри контейнера
-    services:
-      docker:
-        image: docker:dind
-        options: --privileged
-
     env:
-      YC_SA_KEY: ${{ secrets.YC_SA_KEY }} # Если будешь использовать JSON ключ
-      YC_API_KEY: ${{ secrets.YC_API_KEY }} # Или API ключ
+      YC_API_KEY: ${{ secrets.YC_API_KEY }}
       YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
       YC_REGISTRY_ID: ${{ secrets.YC_REGISTRY_ID }}
       YC_SA_ID: ${{ secrets.YC_SA_ID }}
@@ -26,21 +18,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Устанавливаем Docker CLI внутри контейнера yc-cli
-      - name: Install Docker CLI
-        run: |
-          apk add --no-cache docker-cli
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Start Docker Daemon
+      - name: Install Yandex Cloud CLI
         run: |
-          dockerd &
-          sleep 5
+          echo "Installing YC CLI..."
+          # Пробуем несколько источников
+          if curl -fsSL https://storage.yandexcloud.net/cloud-cli/latest/yc-linux-amd64.tar.gz -o yc.tar.gz 2>/dev/null; then
+            tar -xzf yc.tar.gz
+            sudo mv yc /usr/local/bin/
+            rm yc.tar.gz
+          else
+            # Фолбэк: используем готовый бинарник с другого зеркала
+            curl -fsSL https://github.com/yandex-cloud/cli/releases/latest/download/yc-linux-amd64.tar.gz -o yc.tar.gz
+            tar -xzf yc.tar.gz
+            sudo mv yc /usr/local/bin/
+            rm yc.tar.gz
+          fi
+          yc version
 
       - name: Authenticate with API Key
         run: |
           echo "Authenticating..."
-          # Инициализируем профиль (можно без имени, если он один)
-          yc config set --token $(yc iam create-token --api-key "$YC_API_KEY")
+          IAM_TOKEN=$(yc iam create-token --api-key "$YC_API_KEY")
+          yc config set --token "$IAM_TOKEN"
           yc config set folder-id "$YC_FOLDER_ID"
 
       - name: Login to Yandex Container Registry
