@@ -48,7 +48,7 @@ jobs:
           yc config set service-account-key sa-key.json
           
           # Устанавливаем cloud-id (ЗАМЕНИ НА СВОЙ!)
-          yc config set cloud-id bpfclgpcbckpakimd4ht
+          yc config set cloud-id b1gevenr5f44uso8f81d
           
           # Устанавливаем фолдер по умолчанию
           yc config set folder-id "$YC_FOLDER_ID"
