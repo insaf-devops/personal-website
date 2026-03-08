@@ -83,11 +83,22 @@ jobs:
           echo "Pushing image..."
           docker push "$IMAGE_TAG"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-
-      - name: Ensure container exists
+      - name: Debug permissions
         run: |
-          echo "Ensuring container exists..."
-          yc serverless container create --name insaf-portfolio --folder-id "$YC_FOLDER_ID" || true
+          echo "Checking who I am..."
+          yc resource-manager folder list
+          
+          echo "Checking service account permissions..."
+          # Попробуй получить список ревизий контейнера
+          yc serverless container revision list --container-name insaf-portfolio || true
+          
+          echo "Checking registry access..."
+          # Попробуй получить информацию о реестре
+          yc container repository list --registry-id "$YC_REGISTRY_ID" || true
+            - name: Ensure container exists
+              run: |
+                echo "Ensuring container exists..."
+                yc serverless container create --name insaf-portfolio --folder-id "$YC_FOLDER_ID" || true
       
       - name: Deploy to Cloud Run
         run: |
