@@ -88,7 +88,7 @@ jobs:
         run: |
           echo "Deploying to Cloud Run..."
           yc serverless container revision deploy \
-            --service-name insaf-portfolio \
+            --container-name insaf-portfolio \
             --image "$IMAGE_TAG" \
             --memory 128MB \
             --cores 0.5 \
