@@ -64,8 +64,10 @@ jobs:
 
       - name: Login to Yandex Container Registry
         run: |
-          echo "Logging in to registry..."
-          yc cr registry docker-credential-helper --registry-id "$YC_REGISTRY_ID" | docker login --username json_key --password-stdin cr.yandex
+          echo "Configuring Docker credential helper for Yandex Cloud..."
+          # Настраиваем доступ к конкретному реестру
+          yc container registry configure-docker --registry-id "$YC_REGISTRY_ID"
+          echo "✅ Docker credential helper configured for registry: $YC_REGISTRY_ID"
 
       - name: Build and Push Docker image
         run: |
