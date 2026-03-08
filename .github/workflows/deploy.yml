@@ -83,21 +83,9 @@ jobs:
           echo "Pushing image..."
           docker push "$IMAGE_TAG"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-      - name: Check SA permissions
-        run: |
-          echo "Checking service account $YC_SA_ID..."
-          
-          # Проверяем права на использование сервисного аккаунта
-          yc resource-manager folder list-access-bindings "$YC_FOLDER_ID" \
-            --format json | grep -A5 -B5 "$YC_SA_ID" || echo "No bindings found"
-          
-          # Проверяем права на реестр
-          yc container registry list-access-bindings "$YC_REGISTRY_ID" \
-            --format json | grep -A5 -B5 "$YC_SA_ID" || echo "No registry bindings found"
       
       - name: Deploy to Cloud Run
         run: |
-          echo "Deploying new revision to Cloud Run..."
           yc serverless container revision deploy \
             --container-name insaf-portfolio \
             --image "$IMAGE_TAG" \
@@ -105,8 +93,7 @@ jobs:
             --cores 1 \
             --execution-timeout 30s \
             --folder-id "$YC_FOLDER_ID" \
-            --service-account-id "$YC_SA_ID"
-          echo "✅ Deployment successful!"
+            --service-account-id "$YC_SA_ID"  # 👈 Теперь должно работать!
       
       - name: Make container public
         run: |
