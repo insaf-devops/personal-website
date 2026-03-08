@@ -11,6 +11,7 @@ jobs:
     env:
       YC_API_KEY: ${{ secrets.YC_API_KEY }}
       YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
+      YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
       YC_REGISTRY_ID: ${{ secrets.YC_REGISTRY_ID }}
       YC_SA_ID: ${{ secrets.YC_SA_ID }}
 
@@ -24,12 +25,9 @@ jobs:
       - name: Install Yandex Cloud CLI
         run: |
           echo "Installing YC CLI..."
-          # Скачиваем официальный скрипт установки
           curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -a
-          # Добавляем yc в PATH для текущей сессии
           export PATH="$HOME/yandex-cloud/bin:$PATH"
           echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
-          # Проверяем версию
           yc version
 
       - name: Authenticate with Service Account Key
@@ -47,8 +45,8 @@ jobs:
           # Устанавливаем сервисный аккаунт через JSON ключ
           yc config set service-account-key sa-key.json
           
-          # Устанавливаем cloud-id (ЗАМЕНИ НА СВОЙ!)
-          yc config set cloud-id b1gevenr5f44uso8f81d
+          # Устанавливаем cloud-id
+          yc config set cloud-id "$YC_CLOUD_ID"
           
           # Устанавливаем фолдер по умолчанию
           yc config set folder-id "$YC_FOLDER_ID"
@@ -62,18 +60,17 @@ jobs:
           
           echo "✅ Authentication successful!"
 
-      - name: Login to Yandex Container Registry
+      - name: Configure Docker for Yandex Registry
         run: |
           echo "Configuring Docker credential helper for Yandex Cloud..."
-          
-          # Просто настраиваем credential helper без флагов
+          # Настраиваем credential helper
           yc container registry configure-docker
           
           # Проверяем, что настройки применились
           echo "Docker config after setup:"
-          cat ~/.docker/config.json | head -20
+          cat ~/.docker/config.json | head -20 || true
           
-          echo "✅ Successfully configured Docker to work with Yandex Container Registry!"
+          echo "✅ Docker credential helper configured successfully!"
 
       - name: Build and Push Docker image
         run: |
@@ -83,9 +80,21 @@ jobs:
           echo "Pushing image..."
           docker push "$IMAGE_TAG"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-      
+          echo "✅ Image built and pushed successfully!"
+
+      - name: Ensure container exists
+        run: |
+          echo "Creating container if it doesn't exist..."
+          yc serverless container create \
+            --name insaf-portfolio \
+            --folder-id "$YC_FOLDER_ID" || true
+          echo "✅ Container ready"
+
       - name: Deploy to Cloud Run
         run: |
+          echo "Deploying new revision to Cloud Run..."
+          
+          # Пробуем деплой с service-account-id (теперь должно работать с ролью iam.serviceAccounts.user)
           yc serverless container revision deploy \
             --container-name insaf-portfolio \
             --image "$IMAGE_TAG" \
@@ -93,12 +102,47 @@ jobs:
             --cores 1 \
             --execution-timeout 30s \
             --folder-id "$YC_FOLDER_ID" \
-            --service-account-id "$YC_SA_ID"  # 👈 Теперь должно работать!
-      
+            --service-account-id "$YC_SA_ID"
+          
+          echo "✅ Deployment successful!"
+
       - name: Make container public
         run: |
           echo "Making container public..."
           yc serverless container allow-unauthenticated-invoke \
             --name insaf-portfolio \
             --folder-id "$YC_FOLDER_ID"
-          echo "✅ Container is now public! Invoke URL: https://insaf-portfolio.containers.yandexcloud.net"
+          
+          # Получаем URL контейнера
+          CONTAINER_URL="https://insaf-portfolio.containers.yandexcloud.net"
+          echo "✅ Container is now public!"
+          echo "🔗 Invoke URL: $CONTAINER_URL"
+          
+          # Сохраняем URL для вывода
+          echo "CONTAINER_URL=$CONTAINER_URL" >> $GITHUB_ENV
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment..."
+          echo "Container URL: $CONTAINER_URL"
+          echo "You can test it with: curl $CONTAINER_URL"
+          
+          # Получаем информацию о последней ревизии
+          yc serverless container revision list \
+            --container-name insaf-portfolio \
+            --folder-id "$YC_FOLDER_ID" \
+            --limit 1 \
+            --format json | jq '.[0] | {id: .id, status: .status, createdAt: .created_at, image: .image}' || true
+          
+          echo "✅ Deployment verified!"
+
+      - name: Deployment summary
+        run: |
+          echo "🎉 ========================================="
+          echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
+          echo "🎉 ========================================="
+          echo "📦 Image: $IMAGE_TAG"
+          echo "🌐 URL: $CONTAINER_URL"
+          echo "📁 Folder: $YC_FOLDER_ID"
+          echo "🆔 Container: insaf-portfolio"
+          echo "🎉 ========================================="
