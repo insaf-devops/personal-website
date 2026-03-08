@@ -35,22 +35,29 @@ jobs:
       - name: Authenticate with Service Account Key
         run: |
           echo "Authenticating with SA key..."
-          # Сохраняем JSON ключ в файл
+          # Сохраняем JSON ключ во временный файл
           echo '${{ secrets.YC_SA_KEY }}' > sa-key.json
           
-          # Создаём профиль с сервисным ключом
-          yc config profile create github-deployer --service-account-key sa-key.json
+          # Создаём пустой профиль
+          yc config profile create github-deployer || true
+          
+          # Активируем профиль
+          yc config profile activate github-deployer
+          
+          # Устанавливаем сервисный аккаунт через JSON ключ
+          yc config set service-account-key sa-key.json
           
           # Устанавливаем фолдер по умолчанию
           yc config set folder-id "$YC_FOLDER_ID"
           
-          # Проверяем авторизацию
-          yc config profile list
+          # Проверяем, что всё работает
+          echo "Testing authentication..."
+          yc resource-manager folder list --format json
           
           # Очищаем ключ после использования
           rm sa-key.json
           
-          echo "Authentication successful!"
+          echo "✅ Authentication successful!"
 
       - name: Login to Yandex Container Registry
         run: |
