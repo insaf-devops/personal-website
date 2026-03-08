@@ -32,12 +32,17 @@ jobs:
           # Проверяем версию
           yc version
 
-      - name: Authenticate with API Key
+      - name: Authenticate with Service Account Key
         run: |
-          echo "Authenticating..."
-          IAM_TOKEN=$(yc iam create-token --api-key "$YC_API_KEY")
-          yc config set --token "$IAM_TOKEN"
+          echo "Authenticating with SA key..."
+          # Сохраняем JSON ключ в файл
+          echo '${{ secrets.YC_SA_KEY }}' > sa-key.json
+          # Аутентифицируемся
+          yc config serviceaccount --service-account-key sa-key.json
+          # Устанавливаем фолдер по умолчанию
           yc config set folder-id "$YC_FOLDER_ID"
+          # Очищаем ключ после использования
+          rm sa-key.json
 
       - name: Login to Yandex Container Registry
         run: |
