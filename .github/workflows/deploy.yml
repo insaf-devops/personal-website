@@ -7,8 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    container: yandexcloud/cli:latest  # ← Образ с уже установленным YC CLI!
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,24 +14,39 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Install Yandex Cloud CLI
+        run: |
+          echo "Installing YC CLI..."
+          curl -sSL https://storage.yandexcloud.net/cloud-cli/releases/yc-linux-amd64.tar.gz -o yc.tar.gz
+          tar -xzf yc.tar.gz
+          sudo mv yc /usr/local/bin/yc
+          rm yc.tar.gz
+          yc version
+
       - name: Authenticate with API Key
         run: |
-          yc config set --token $(yc iam create-token --api-key '${{ secrets.YC_API_KEY }}')
+          echo "Authenticating..."
+          IAM_TOKEN=$(yc iam create-token --api-key '${{ secrets.YC_API_KEY }}')
+          yc config set --token "$IAM_TOKEN"
           yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
 
       - name: Login to Yandex Container Registry
         run: |
+          echo "Logging in to registry..."
           yc cr registry docker-credential-helper --registry-id ${{ secrets.YC_REGISTRY_ID }} | docker login --username json_key --password-stdin cr.yandex
 
       - name: Build and Push Docker image
         run: |
           IMAGE_TAG=cr.yandex/${{ secrets.YC_REGISTRY_ID }}/portfolio:${{ github.sha }}
+          echo "Building image: $IMAGE_TAG"
           docker build -t $IMAGE_TAG .
+          echo "Pushing image..."
           docker push $IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
         run: |
+          echo "Deploying to Cloud Run..."
           yc serverless container revision deploy \
             --service-name insaf-portfolio \
             --image ${{ env.IMAGE_TAG }} \
