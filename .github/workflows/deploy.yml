@@ -102,7 +102,7 @@ jobs:
             --cores 1 \
             --execution-timeout 30s \
             --folder-id "$YC_FOLDER_ID" \
-
+            --service-account-id "$YC_SA_ID"
           
           echo "✅ Deployment successful!"
 
